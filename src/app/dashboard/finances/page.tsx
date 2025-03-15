@@ -2,13 +2,18 @@ import DashboardNavbar from "@/components/dashboard-navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "../../../../supabase/server";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   ArrowDown,
   ArrowUp,
   BarChart3,
   DollarSign,
+  FileText,
   LineChart,
   PieChart,
+  Receipt,
+  RefreshCcw,
 } from "lucide-react";
 
 export default async function FinancesDashboard() {
@@ -40,6 +45,57 @@ export default async function FinancesDashboard() {
               <span>Financial overview for the current month</span>
             </div>
           </header>
+
+          {/* Financial Management Modules */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link href="/dashboard/finances/expenses">
+              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="bg-orange-100 p-3 rounded-full">
+                    <Receipt className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Expense Management</h3>
+                    <p className="text-sm text-gray-500">
+                      Track and categorize expenses
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/dashboard/finances/recurring">
+              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="bg-blue-100 p-3 rounded-full">
+                    <RefreshCcw className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Recurring Payments</h3>
+                    <p className="text-sm text-gray-500">
+                      Manage recurring expenses
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/dashboard/finances/reports">
+              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="bg-green-100 p-3 rounded-full">
+                    <FileText className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Financial Reports</h3>
+                    <p className="text-sm text-gray-500">
+                      Generate detailed reports
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </section>
 
           {/* KPI Cards */}
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -181,8 +237,13 @@ export default async function FinancesDashboard() {
 
           {/* Recent Transactions */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Recent Transactions</CardTitle>
+              <Link href="/dashboard/finances/expenses">
+                <Button variant="outline" size="sm">
+                  View All
+                </Button>
+              </Link>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

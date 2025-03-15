@@ -15,6 +15,7 @@ import {
   DollarSign,
   FileText,
   Home,
+  ListTodo,
   Settings,
   Users,
   UserCircle,
@@ -25,7 +26,7 @@ import NotificationPanel from "./notification-panel";
 export default function DashboardNavbar() {
   const supabase = createClient();
   const router = useRouter();
-  const pathname = usePathname() || "";
+  const pathname = usePathname();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -35,11 +36,7 @@ export default function DashboardNavbar() {
     <nav className="w-full border-b border-gray-200 bg-white py-4 sticky top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            prefetch
-            className="text-2xl font-bold text-orange-600"
-          >
+          <Link href="/" className="text-2xl font-bold text-orange-600">
             TigFin
           </Link>
           <div className="hidden md:flex gap-6 ml-10">
@@ -70,6 +67,13 @@ export default function DashboardNavbar() {
             >
               <Users className="h-4 w-4" />
               Clients
+            </Link>
+            <Link
+              href="/dashboard/tasks"
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive("/dashboard/tasks") ? "text-orange-600" : "text-gray-700 hover:text-orange-600"}`}
+            >
+              <ListTodo className="h-4 w-4" />
+              Tasks
             </Link>
             <Link
               href="/dashboard/reports"
@@ -104,6 +108,7 @@ export default function DashboardNavbar() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push("/dashboard/notifications")}
+                className="cursor-pointer"
               >
                 Notifications
               </DropdownMenuItem>
@@ -113,6 +118,7 @@ export default function DashboardNavbar() {
                   await supabase.auth.signOut();
                   router.refresh();
                 }}
+                className="cursor-pointer"
               >
                 Sign out
               </DropdownMenuItem>
