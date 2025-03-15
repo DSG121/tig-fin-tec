@@ -1,0 +1,2 @@
+-- This file has been replaced by 20240703000001_fix_users_table.sql
+-- Keeping this file to maintain migration history
