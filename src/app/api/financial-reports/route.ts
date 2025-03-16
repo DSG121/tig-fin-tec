@@ -29,6 +29,15 @@ export async function GET(request: NextRequest) {
 
     if (expensesError) throw expensesError;
 
+    // Get user's financial reports
+    const { data: userReports, error: reportsError } = await supabase
+      .from("financial_reports")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (reportsError) throw reportsError;
+
     // Calculate financial metrics
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -84,61 +93,87 @@ export async function GET(request: NextRequest) {
       accountsPayable: monthlyRecurringTotal, // Using recurring payments as accounts payable
     };
 
-    // Generate report list
-    const reports = [
-      {
-        id: "rep-001",
-        name: "Monthly Profit & Loss",
-        description:
-          "Detailed breakdown of revenue and expenses for the current month",
-        period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
-        type: "Profit & Loss",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-      {
-        id: "rep-002",
-        name: "Quarterly Balance Sheet",
-        description:
-          "Summary of assets, liabilities, and equity for current quarter",
-        period: `Q${Math.floor(currentMonth / 3) + 1} ${currentYear}`,
-        type: "Balance Sheet",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-      {
-        id: "rep-003",
-        name: "Cash Flow Statement",
-        description:
-          "Analysis of cash inflows and outflows for the current month",
-        period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
-        type: "Cash Flow",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-      {
-        id: "rep-004",
-        name: "Expense Analysis",
-        description: "Detailed breakdown of expenses by category",
-        period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
-        type: "Expense Report",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-      {
-        id: "rep-005",
-        name: "Revenue by Client",
-        description: "Analysis of revenue sources by client",
-        period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
-        type: "Revenue Report",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-      {
-        id: "rep-006",
-        name: "Tax Summary",
-        description:
-          "Summary of tax liabilities and payments for current quarter",
-        period: `Q${Math.floor(currentMonth / 3) + 1} ${currentYear}`,
-        type: "Tax Report",
-        createdAt: new Date().toISOString().split("T")[0],
-      },
-    ];
+    // Format user reports for the response
+    const reports = userReports
+      ? userReports.map((report) => ({
+          id: report.id,
+          name: report.name,
+          description: report.description,
+          period: report.period,
+          type: report.report_type,
+          format: report.format,
+          includeCharts: report.include_charts,
+          includeNotes: report.include_notes,
+          createdAt: new Date(report.created_at).toISOString().split("T")[0],
+          downloadUrl: `/api/financial-reports/download/${report.id}`,
+        }))
+      : [];
+
+    // If no reports exist yet, create some sample reports
+    if (reports.length === 0) {
+      // Generate sample report list
+      const sampleReports = [
+        {
+          name: "Monthly Profit & Loss",
+          description:
+            "Detailed breakdown of revenue and expenses for the current month",
+          period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
+          report_type: "profit-loss",
+          format: "pdf",
+          include_charts: true,
+          include_notes: false,
+          user_id: user.id,
+        },
+        {
+          name: "Quarterly Balance Sheet",
+          description:
+            "Summary of assets, liabilities, and equity for current quarter",
+          period: `Q${Math.floor(currentMonth / 3) + 1} ${currentYear}`,
+          report_type: "balance-sheet",
+          format: "pdf",
+          include_charts: true,
+          include_notes: true,
+          user_id: user.id,
+        },
+        {
+          name: "Cash Flow Statement",
+          description:
+            "Analysis of cash inflows and outflows for the current month",
+          period: `${new Date().toLocaleString("default", { month: "long" })} ${currentYear}`,
+          report_type: "cash-flow",
+          format: "pdf",
+          include_charts: true,
+          include_notes: false,
+          user_id: user.id,
+        },
+      ];
+
+      // Insert sample reports into the database
+      const { data: newReports, error: insertError } = await supabase
+        .from("financial_reports")
+        .insert(sampleReports)
+        .select();
+
+      if (insertError) throw insertError;
+
+      // Format the newly created reports for the response
+      if (newReports) {
+        for (const report of newReports) {
+          reports.push({
+            id: report.id,
+            name: report.name,
+            description: report.description,
+            period: report.period,
+            type: report.report_type,
+            format: report.format,
+            includeCharts: report.include_charts,
+            includeNotes: report.include_notes,
+            createdAt: new Date(report.created_at).toISOString().split("T")[0],
+            downloadUrl: `/api/financial-reports/download/${report.id}`,
+          });
+        }
+      }
+    }
 
     return NextResponse.json({ financialMetrics, reports });
   } catch (error) {

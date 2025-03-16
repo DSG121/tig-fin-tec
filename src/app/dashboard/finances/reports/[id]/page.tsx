@@ -15,47 +15,68 @@ export default function ReportDetailPage({ params }) {
   const reportId = params.id;
 
   useEffect(() => {
-    // In a real app, this would fetch the specific report details
-    // For now, we'll simulate it with a timeout
-    const timer = setTimeout(() => {
-      // Sample report data
-      setReport({
-        id: reportId,
-        name: "Monthly Profit & Loss",
-        description:
-          "Detailed breakdown of revenue and expenses for the current month",
-        period: `${new Date().toLocaleString("default", { month: "long" })} ${new Date().getFullYear()}`,
-        type: "Profit & Loss",
-        createdAt: new Date().toISOString().split("T")[0],
-        data: {
-          revenue: {
-            total: 24780,
-            breakdown: [
-              { category: "Client Services", amount: 18500 },
-              { category: "Product Sales", amount: 4280 },
-              { category: "Consulting", amount: 2000 },
-            ],
-          },
-          expenses: {
-            total: 16230,
-            breakdown: [
-              { category: "Salaries", amount: 8500 },
-              { category: "Rent", amount: 2200 },
-              { category: "Software", amount: 1350 },
-              { category: "Utilities", amount: 680 },
-              { category: "Marketing", amount: 1500 },
-              { category: "Other", amount: 2000 },
-            ],
-          },
-          profit: 8550,
-          profitMargin: 34.5,
-        },
-      });
-      setLoading(false);
-    }, 1500);
+    const fetchReportData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/financial-reports/${reportId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch report data");
+        }
+        const data = await response.json();
+        setReport(data.report);
+      } catch (error) {
+        console.error("Error fetching report:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load report data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
-  }, [reportId]);
+    if (reportId) {
+      fetchReportData();
+    } else {
+      // Sample report data for development/preview
+      setTimeout(() => {
+        setReport({
+          id: reportId || "sample-id",
+          name: "Monthly Profit & Loss",
+          description:
+            "Detailed breakdown of revenue and expenses for the current month",
+          period: `${new Date().toLocaleString("default", { month: "long" })} ${new Date().getFullYear()}`,
+          type: "Profit & Loss",
+          createdAt: new Date().toISOString().split("T")[0],
+          data: {
+            revenue: {
+              total: 24780,
+              breakdown: [
+                { category: "Client Services", amount: 18500 },
+                { category: "Product Sales", amount: 4280 },
+                { category: "Consulting", amount: 2000 },
+              ],
+            },
+            expenses: {
+              total: 16230,
+              breakdown: [
+                { category: "Salaries", amount: 8500 },
+                { category: "Rent", amount: 2200 },
+                { category: "Software", amount: 1350 },
+                { category: "Utilities", amount: 680 },
+                { category: "Marketing", amount: 1500 },
+                { category: "Other", amount: 2000 },
+              ],
+            },
+            profit: 8550,
+            profitMargin: 34.5,
+          },
+        });
+        setLoading(false);
+      }, 1500);
+    }
+  }, [reportId, toast]);
 
   const handleDownload = () => {
     toast({

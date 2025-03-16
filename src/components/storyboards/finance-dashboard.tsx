@@ -7,6 +7,9 @@ import {
   LineChart,
   PieChart,
 } from "lucide-react";
+import ClientPaymentsCard from "@/components/client-payments-card";
+import FinancialHealthIndicator from "@/components/financial-health-indicator";
+import UpcomingPaymentsWidget from "@/components/upcoming-payments-widget";
 
 export default function FinanceDashboard() {
   return (
@@ -90,6 +93,15 @@ export default function FinanceDashboard() {
             </div>
           </Card>
         </section>
+
+        {/* Financial Health & Client Payments */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <FinancialHealthIndicator />
+          <ClientPaymentsCard />
+        </div>
+
+        {/* Upcoming Payments */}
+        <UpcomingPaymentsWidget />
 
         {/* Revenue & Expense Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

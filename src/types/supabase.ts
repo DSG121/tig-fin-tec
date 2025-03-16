@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      client_payments: {
+        Row: {
+          amount: number
+          auto_renew: boolean | null
+          client_id: string | null
+          created_at: string | null
+          description: string | null
+          frequency: string
+          id: string
+          last_payment_date: string | null
+          next_due_date: string
+          payment_history: Json | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          auto_renew?: boolean | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          frequency: string
+          id?: string
+          last_payment_date?: string | null
+          next_due_date: string
+          payment_history?: Json | null
+          status: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          auto_renew?: boolean | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          frequency?: string
+          id?: string
+          last_payment_date?: string | null
+          next_due_date?: string
+          payment_history?: Json | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null

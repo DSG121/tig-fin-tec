@@ -13,17 +13,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertCircle,
   ArrowLeft,
   Download,
   FileText,
   Printer,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import FinancialReportCard from "@/components/financial-report-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function FinancialReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -40,6 +53,7 @@ export default function FinancialReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [reportTypeFilter, setReportTypeFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
+  const [reportToDelete, setReportToDelete] = useState(null);
   const { toast } = useToast();
 
   // Form state for generating custom report
@@ -51,6 +65,7 @@ export default function FinancialReportsPage() {
     includeNotes: false,
   });
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [deletingReport, setDeletingReport] = useState(false);
 
   const fetchReportsData = async () => {
     setLoading(true);
@@ -127,9 +142,11 @@ export default function FinancialReportsPage() {
         throw new Error("Failed to download report");
       }
 
+      const data = await response.json();
+
       toast({
         title: "Download Started",
-        description: "Your report download has started",
+        description: `Your ${data.report.name} report download has started`,
       });
 
       // In a real app, this would trigger a file download
@@ -144,6 +161,42 @@ export default function FinancialReportsPage() {
     }
   };
 
+  const handleDeleteReport = async () => {
+    if (!reportToDelete) return;
+
+    setDeletingReport(true);
+    try {
+      const response = await fetch(
+        `/api/financial-reports/${reportToDelete.id}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete report");
+      }
+
+      toast({
+        title: "Report Deleted",
+        description: `${reportToDelete.name} has been deleted successfully`,
+      });
+
+      // Refresh reports list
+      fetchReportsData();
+    } catch (error) {
+      console.error("Error deleting report:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete report",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingReport(false);
+      setReportToDelete(null);
+    }
+  };
+
   // Filter reports based on search term and filters
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
@@ -154,11 +207,15 @@ export default function FinancialReportsPage() {
       reportTypeFilter === "all" ||
       report.type.toLowerCase().includes(reportTypeFilter.replace("-", " "));
 
-    // Simple period matching - in a real app, this would be more sophisticated
+    // Period matching
     const matchesPeriod =
       periodFilter === "all" ||
-      (periodFilter === "july-2023" && report.period.includes("July")) ||
-      (periodFilter === "q2-2023" && report.period.includes("Q2"));
+      (periodFilter === "current-month" &&
+        report.period.includes(
+          new Date().toLocaleString("default", { month: "long" }),
+        )) ||
+      (periodFilter === "quarterly" && report.period.includes("Q")) ||
+      (periodFilter.includes("2023") && report.period.includes("2023"));
 
     return matchesSearch && matchesType && matchesPeriod;
   });
@@ -312,18 +369,16 @@ export default function FinancialReportsPage() {
               <Select
                 value={periodFilter}
                 onValueChange={setPeriodFilter}
-                defaultValue="july-2023"
+                defaultValue="all"
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Periods</SelectItem>
-                  <SelectItem value="july-2023">July 2023</SelectItem>
-                  <SelectItem value="q2-2023">Q2 2023</SelectItem>
-                  <SelectItem value="q1-2023">Q1 2023</SelectItem>
+                  <SelectItem value="current-month">Current Month</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
                   <SelectItem value="2023">Year 2023</SelectItem>
-                  <SelectItem value="2022">Year 2022</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -342,13 +397,20 @@ export default function FinancialReportsPage() {
                     key={report.id}
                     report={report}
                     onDownload={handleDownloadReport}
+                    onDelete={(reportId) => {
+                      setReportToDelete(report);
+                      handleDeleteReport();
+                    }}
                   />
                 ))
               ) : (
                 <div className="col-span-3 py-12 text-center">
-                  <p className="text-gray-500">
-                    No reports found matching your criteria.
-                  </p>
+                  <div className="flex flex-col items-center gap-2">
+                    <AlertCircle className="h-8 w-8 text-orange-600" />
+                    <p className="text-gray-500">
+                      No reports found matching your criteria.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

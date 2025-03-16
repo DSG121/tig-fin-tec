@@ -15,6 +15,10 @@ import {
   Receipt,
   RefreshCcw,
 } from "lucide-react";
+import FinancialHealthIndicator from "@/components/financial-health-indicator";
+import UpcomingPaymentsWidget from "@/components/upcoming-payments-widget";
+import ClientPaymentsCard from "@/components/client-payments-card";
+import OverduePaymentsNotification from "@/components/overdue-payments-notification";
 
 export default async function FinancesDashboard() {
   const supabase = await createClient();
@@ -45,6 +49,9 @@ export default async function FinancesDashboard() {
               <span>Financial overview for the current month</span>
             </div>
           </header>
+
+          {/* Overdue Payments Notification */}
+          <OverduePaymentsNotification />
 
           {/* Financial Management Modules */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -165,6 +172,15 @@ export default async function FinancesDashboard() {
               </div>
             </Card>
           </section>
+
+          {/* Financial Health Indicator */}
+          <FinancialHealthIndicator />
+
+          {/* Financial Health & Upcoming Payments */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <UpcomingPaymentsWidget />
+            <ClientPaymentsCard />
+          </div>
 
           {/* Revenue & Expense Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
